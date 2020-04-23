@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Aplikacijica</title>
+<script	 src="https://code.jquery.com/jquery-1.11.0.js"
+		 integrity="sha256-zgND4db0iXaO7v4CLBIYHGoIIudWI5hRMQrPB20j0Qw="
+		crossorigin="anonymous"> </script>
+<script>
+
+//socket je globalna promenljiva
+var socket;
+var host = "ws://localhost:8080/chat-war/ws";
+
+$(document).ready(function(){
+	$("#btnPost").click(function(){
+		$.ajax({
+			url: "rest/chat/post/asdfasdf",
+			type: "POST",
+			data: {},
+			contentType: "application/json",
+			dataType: "json",
+			complete: function(data){
+				console.log('Sent message to the server.');
+			}
+			
+		});
+	});
+
+
+	$(document).ready(function(){
+		$("#btnSubmit").click(function(){
+			var uname = $("#username").val();
+			var pass = $("#password").val();
+			console.log(uname)
+			console.log(pass)
+			
+			if( email =='' || password ==''){
+				$('input[type="text"],input[type="password"]').css("border","2px solid red");
+				$('input[type="text"],input[type="password"]').css("box-shadow","0 0 3px red");
+				alert("Please fill all fields...!!!!!!");
+			}
+			else{
+			$.ajax({
+				url: "rest/chat/register/" + uname,
+				type: "POST",
+				data: {},
+				contentType: "application/json",
+				dataType: "json",
+				complete: function(data){
+					console.log('Sent message to the server.');
+				}
+				
+			});
+		});
+		}
+
+	
+	try{
+		socket = new WebSocket(host);
+		console.log('connect: Socket Status : ' + socket.readyState);
+		
+		socket.onopen = function(){
+			console.log('onopen : Socket Status: '+ socket.readyState + '(open)');
+		}
+		
+		socket.onmessage = function(msg){
+			console.log('onmessage: Recieved : '+ msg.data);
+		}
+		
+		socket.onclose = function(){
+			socket = null;
+		}
+		
+	} catch(exception){
+		console.log('Error' + exception);
+	}
+	
+		
+});
+
+</script>
+</head>
+<body>
+	<form method="post" action="index.html" accept-charset=utf-8>
+		<div class="box">
+		<h1>Form</h1>
+		<input type = "username" name="username" value = "username" id = "username">
+		<input type = "password" name = "password" value = "password" id = "passoard">
+		</div>
+		<button id ="btnSubmit"> Login </button>
+	</form>
+	<a href = "rest/chat/test">Test</a>
+	<button id = "btnPost"> Proba slanja</button>
+</body>
+</html>
