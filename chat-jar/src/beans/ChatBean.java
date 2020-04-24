@@ -13,6 +13,7 @@ import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -26,7 +27,7 @@ import models.User;
 //local bean znaci da metode koje hocemo da pogodimo restom
 //ne moraju da se navode u remote interfejs
 @Stateless
-@Path("users")
+@Path("")
 @LocalBean
 public class ChatBean{
 	@Resource(mappedName = "java:/ConnectionFactory")
@@ -45,9 +46,7 @@ public class ChatBean{
 	public String test() {
 		return "Ok";
 	}
-	
-	
-	
+
 	
 	@POST
 	@Path("post/{text}")
@@ -74,7 +73,7 @@ public class ChatBean{
 	
 	
 	@GET
-	@Path("registered")
+	@Path("users/registered")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getRegisteredUseres() {
 		
@@ -108,7 +107,7 @@ public class ChatBean{
 	
 
 	@POST
-	@Path("register/{username}/{password}")
+	@Path("users/register")
 	//@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public String register(User user) {
@@ -129,17 +128,14 @@ public class ChatBean{
 
 
 	@POST
-	@Path("login")
+	@Path("users/login")
 	@Consumes(MediaType.APPLICATION_JSON)
 	//@Produces(MediaType.TEXT_PLAIN)
 	public String login(User user) {
-	
-		
 		for(User u : this.users) {
-			System.out.println(user.getUsername() + " "+ u.getUsername());
-			System.out.println(user.getPassword() + " "+ u.getPassword());
 
 				if(u.getUsername().equals(user.getUsername()) && u.getPassword().equals(user.getPassword())) {
+					this.loggedIn.add(user);
 					System.out.println("User logged in");
 					return "User logged in successfully";
 				}
@@ -148,5 +144,26 @@ public class ChatBean{
 		System.out.println("Invalid username or password");
 		return "Invalid username or password";
 	}
+	
+	
+	@DELETE
+	@Path("users/loggedin/{username}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String logout(User user) {
+		
+		for(User u : loggedIn) {
+			if(u.getUsername().equals(user.getUsername())) {
+				loggedIn.remove(u);
+				System.out.println("User succssfully logged out");
+				return "User succssfully logged out" + "\t" + "No of users logged in:" + loggedIn.size() ;
+			}
+			
+		}
+		
+		
+		return "Logging out failed";
+	}
+	
+
 	
 }

@@ -2,10 +2,12 @@
 <html>
 <head>
 <meta charset="ISO-8859-1">
-<title>Aplikacijica</title>
-<script	 src="https://code.jquery.com/jquery-1.11.0.js"
-		 integrity="sha256-zgND4db0iXaO7v4CLBIYHGoIIudWI5hRMQrPB20j0Qw="
-		crossorigin="anonymous"> </script>
+<title>Chat-Aplikacija</title>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 <script>
 
 //socket je globalna promenljiva
@@ -29,32 +31,32 @@ $(document).ready(function(){
 
 
 	$(document).ready(function(){
-		$("#btnSubmit").click(function(){
+		$("#btnLogin").click(function(){
 			var uname = $("#username").val();
 			var pass = $("#password").val();
 			console.log(uname)
 			console.log(pass)
 			
-			if( email =='' || password ==''){
+			if( uname =='' || pass ==''){
 				$('input[type="text"],input[type="password"]').css("border","2px solid red");
 				$('input[type="text"],input[type="password"]').css("box-shadow","0 0 3px red");
 				alert("Please fill all fields...!!!!!!");
 			}
 			else{
 			$.ajax({
-				url: "rest/chat/register/" + uname,
+				url: "rest/users/login/",
 				type: "POST",
-				data: {},
+				data: JSON.stringify({"username":uname, "password":pass}),
 				contentType: "application/json",
-				dataType: "json",
+				//dataType: "json",
 				complete: function(data){
-					console.log('Sent message to the server.');
+					console.log('User logged in.');
 				}
-				
+			
 			});
-		});
 		}
-
+		});
+	});
 	
 	try{
 		socket = new WebSocket(host);
@@ -84,13 +86,21 @@ $(document).ready(function(){
 <body>
 	<form method="post" action="index.html" accept-charset=utf-8>
 		<div class="box">
-		<h1>Form</h1>
-		<input type = "username" name="username" value = "username" id = "username">
-		<input type = "password" name = "password" value = "password" id = "passoard">
+		<h1>Login</h1>
+		<div class="form-group float-label-control">
+            <label for="">Username</label>
+            <input type="username" class="form-control" placeholder="Username">
+         </div>
+         <div class="form-group float-label-control">
+          	<label for="">Password</label>
+            <input type="password" class="form-control" placeholder="Password">
+         </div>
+		 </div>
+		<div class ="box">
+			<button id="btnLogin" class="btn btn-primary">Login</button>
+			<a href="./registered.html">Not registered, register here</a>
 		</div>
-		<button id ="btnSubmit"> Login </button>
+		
 	</form>
-	<a href = "rest/chat/test">Test</a>
-	<button id = "btnPost"> Proba slanja</button>
 </body>
 </html>
