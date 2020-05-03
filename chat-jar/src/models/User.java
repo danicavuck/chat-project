@@ -1,11 +1,13 @@
 package models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class User implements Serializable {
 	
 	private String username;
 	private String password;
+	private ArrayList<Message> messages = new ArrayList<Message>();
 	
 	public User() {}
 	
@@ -28,6 +30,18 @@ public class User implements Serializable {
 		this.password = password;
 	}
 	
+	
+	
+	public ArrayList<Message> getMessages() {
+		return messages;
+	}
+
+
+	public void setMessages(ArrayList<Message> messages) {
+		this.messages = messages;
+	}
+
+
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub

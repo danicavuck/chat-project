@@ -2,8 +2,8 @@ package ws;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
@@ -12,19 +12,20 @@ import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 @Singleton
-@ServerEndpoint("/ws")
+@ServerEndpoint("/ws/{username}")
 @LocalBean
 public class WSEndPoint {
 	
-	static List<Session> sessions = new ArrayList<Session>();
+	static Map<String,Session> sessions = new HashMap<>();
 	
 	@OnOpen
-	public void onOpen(Session session) {
-		if(!sessions.contains(session)) {
-			sessions.add(session);
+	public void onOpen(@PathParam("username") String username, Session session) {
+		if(!sessions.containsKey(username)) {
+			sessions.put(username,session);
 		}
 	}
 	
@@ -33,9 +34,8 @@ public class WSEndPoint {
 	@OnMessage
 	public void echoTextMessage(String msg) {
 		try {
-			for(Session s : sessions) {
-				System.out.println("WSEndPoint: " + msg);
-				s.getBasicRemote().sendText(msg);
+			for(String s : sessions.keySet()) {
+				sessions.get(s).getBasicRemote().sendText(msg);
 				}
 			} catch(IOException e) {
 			e.printStackTrace();
@@ -43,33 +43,42 @@ public class WSEndPoint {
 
 	}
 	
+	public void sendToAll(String username, String msg) {
+		for(String uname : sessions.keySet()) {
+			if(!uname.equals(username)) {
+				try {
+					sessions.get(uname).getBasicRemote().sendText(msg);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 	
-//	public void echoTextMessage(Session session, String msg, boolean last) {
-//		try {
-//			if(session.isOpen()) {
-//				for (Session s : sessions) {
-//					if(!s.getId().equals(session.getId())) {
-//						s.getBasicRemote().sendText(msg,last);
-//						}
-//					}
-//				}
-//			} catch(IOException e) {
-//				try {
-//					session.close();
-//				}	catch(IOException e1) {
-//					e1.printStackTrace();
-//				}
-//			}
-//		}
+	public void sendOneMessage(String username, String message) {
+		try {
+	        for (String s : sessions.keySet()) {
+	        	if(s.equals(username)) {
+	        		sessions.get(s).getBasicRemote().sendText(message);
+	        		break;
+	        	}        	
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 		
 	@OnClose
-	public void close(Session session) {
-		sessions.remove(session);
+	public void close(@PathParam("username") String username,Session session) {
+		sessions.remove(username);
 	}
 	
 	@OnError
-	public void error(Session session, Throwable t) {
-		sessions.remove(session);
+	public void error(@PathParam("username") String username,Session session, Throwable t) {
+		sessions.remove(username);
 		t.printStackTrace();
 	}
 	

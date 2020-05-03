@@ -1,106 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="ISO-8859-1">
-<title>Chat-Aplikacija</title>
-<meta charset="utf-8">
+<title>Chat-Aplication</title>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-<script>
-
-//socket je globalna promenljiva
-var socket;
-var host = "ws://localhost:8080/chat-war/ws";
-
-$(document).ready(function(){
-	$("#btnPost").click(function(){
-		$.ajax({
-			url: "rest/chat/post/asdfasdf",
-			type: "POST",
-			data: {},
-			contentType: "application/json",
-			dataType: "json",
-			complete: function(data){
-				console.log('Sent message to the server.');
-			}
-			
-		});
-	});
-
-
-	$(document).ready(function(){
-		$("#btnLogin").click(function(){
-			var uname = $("#username").val();
-			var pass = $("#password").val();
-			console.log(uname)
-			console.log(pass)
-			
-			if( uname =='' || pass ==''){
-				$('input[type="text"],input[type="password"]').css("border","2px solid red");
-				$('input[type="text"],input[type="password"]').css("box-shadow","0 0 3px red");
-				alert("Please fill all fields...!!!!!!");
-			}
-			else{
-			$.ajax({
-				url: "rest/users/login/",
-				type: "POST",
-				data: JSON.stringify({"username":uname, "password":pass}),
-				contentType: "application/json",
-				//dataType: "json",
-				complete: function(data){
-					console.log('User logged in.');
-				}
-			
-			});
-		}
-		});
-	});
-	
-	try{
-		socket = new WebSocket(host);
-		console.log('connect: Socket Status : ' + socket.readyState);
-		
-		socket.onopen = function(){
-			console.log('onopen : Socket Status: '+ socket.readyState + '(open)');
-		}
-		
-		socket.onmessage = function(msg){
-			console.log('onmessage: Recieved : '+ msg.data);
-		}
-		
-		socket.onclose = function(){
-			socket = null;
-		}
-		
-	} catch(exception){
-		console.log('Error' + exception);
-	}
-	
-		
-});
-
-</script>
+  <script type="text/javascript" src="js/index.js"></script>
+  <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <body>
-	<form method="post" action="index.html" accept-charset=utf-8>
-		<div class="box">
-		<h1>Login</h1>
-		<div class="form-group float-label-control">
-            <label for="">Username</label>
-            <input type="username" class="form-control" placeholder="Username">
-         </div>
-         <div class="form-group float-label-control">
-          	<label for="">Password</label>
-            <input type="password" class="form-control" placeholder="Password">
-         </div>
-		 </div>
-		<div class ="box">
-			<button id="btnLogin" class="btn btn-primary">Login</button>
-			<a href="./registered.html">Not registered, register here</a>
-		</div>
-		
-	</form>
+<div class="login-page">
+  <div class="form" >
+      <input id = "username" type="text" placeholder="username"/>
+      <input id = "password" type="password" placeholder="password"/>
+      <button id = "btnLogin">login</button>
+      <p class="message">Not registered? <a href="register.html">Create an account</a></p>
+  </div>
+</div>
 </body>
 </html>
