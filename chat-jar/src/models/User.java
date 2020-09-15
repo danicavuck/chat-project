@@ -2,12 +2,14 @@ package models;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class User implements Serializable {
 	
 	private String username;
 	private String password;
-	private ArrayList<Message> messages = new ArrayList<Message>();
+	private HashMap<UUID,Message> messages = new HashMap<UUID,Message>();
 	
 	public User() {}
 	
@@ -31,13 +33,12 @@ public class User implements Serializable {
 	}
 	
 	
-	
-	public ArrayList<Message> getMessages() {
+	public HashMap<UUID, Message> getMessages() {
 		return messages;
 	}
 
 
-	public void setMessages(ArrayList<Message> messages) {
+	public void setMessages(HashMap<UUID, Message> messages) {
 		this.messages = messages;
 	}
 

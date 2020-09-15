@@ -5,6 +5,7 @@
 	<projects>
 		<project>chat-jar</project>
 		<project>chat-war</project>
+		<project>chat-ear</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -1,11 +1,34 @@
 $(document).ready(function(){
-	   
-
 	
+	  var socketUser;
+	  let username = sessionStorage.getItem('username');
+	   
+	    var hostUser = "ws://localhost:8080/chat-war/ws/login/" + username;
+	    try{
+		    socketUser = new WebSocket(hostUser);
+		    console.log('connect: Socket Status: '+socketUser.readyState);
+		
+		    socketUser.onopen = function(){
+		   	 console.log('onopen: Socket Status: '+socketUser.readyState+' (open)');
+		    }
+		
+		    socketUser.onmessage = function(msg){
+		    	  $('#loggedInTable').append('<tr id='+msg.data + '><th scope = "row" >' + "*" + "</th>" + "<td>" + msg.data + "</td></tr>");		   	
+		    }
+		
+		    socketUser.onclose = function(){
+		    	socketUser = null;
+		    }
+		    
+		
+		} catch(exception){
+		   console.log('Error'+exception);
+		}
 
     var socket;
-    let username = sessionStorage.getItem('username');
-    var host = "ws://localhost:8080/chat-war/ws/" + username;
+	let usrName = sessionStorage.getItem('username');
+
+    var host = "ws://localhost:8080/chat-war/ws/" + usrName;
     try{
 	    socket = new WebSocket(host);
 	    console.log('connect: Socket Status: '+socket.readyState);
@@ -15,8 +38,7 @@ $(document).ready(function(){
 	    }
 	
 	    socket.onmessage = function(msg){
-	     //$("#msgPanel").append(content + "\n");
-	   	 console.log('Received: '+ msg.data);
+	     $("#msgPanel").append(msg.content + "\n");
 	    }
 	
 	    socket.onclose = function(){
@@ -28,9 +50,31 @@ $(document).ready(function(){
 	   console.log('Error'+exception);
 	}
 	
+	 var socketLogout;
+	  let username2 = sessionStorage.getItem('username');
+	   
+	    var hostLogout = "ws://localhost:8080/chat-war/ws/logout/" + username2;
+	    try{
+	    	socketLogout = new WebSocket(hostLogout);
+		    console.log('connect: Socket Status: '+socketLogout.readyState);
+		
+		    socketLogout.onopen = function(){
+		   	 console.log('onopen: Socket Status: '+socketLogout.readyState+' (open)');
+		    }
+		
+		    socketLogout.onmessage = function(msg){
+		    	$('#'+msg.data).remove();
+		    }
+		
+		    socketLogout.onclose = function(){
+		    	socketUser = null;
+		    }
+		    
+		
+		} catch(exception){
+		   console.log('Error'+exception);
+		}
 
-	
-	
 	
 	let loggedUser = sessionStorage.getItem('username');
 	
@@ -47,7 +91,7 @@ $(document).ready(function(){
                console.log(temp);
                if(data[i] !== loggedUser){ 
             	   	num = num + 1;
-                    $('#loggedInTable').append('<tr><th scope = "row">'+ num + "</th>" + "<td>" + temp + "</td></tr>");
+                    $('#loggedInTable').append('<tr id='+temp + '><th scope = "row" >' + num + "</th>" + "<td>" + temp + "</td></tr>");
                }
             }	
         },
@@ -67,11 +111,9 @@ $(document).ready(function(){
             for(var i = 0; i < data.length; i++){
                var sender = data[i].sender;
                var reciever = data[i].reciever;
-               var content = data[i].content
+               var content = data[i].content;
                $("#msgPanel").append(sender + " : " + content);
-               console.log(sender);
-               console.log(reciever);
-               console.log(content);
+             
             }
         },
         error: function(){
@@ -89,7 +131,6 @@ $(document).ready(function(){
         	var num = 0;
             for(var i = 0; i < data.length; i++){
                var temp = data[i];
-               console.log(temp);
                if(data[i] !== loggedUser){ 
             	   	num = num + 1;
                     $('#usersTable').append('<tr><th scope = "row">'+ num + "</th>" + "<td>" + temp + "</td></tr>");
@@ -132,7 +173,7 @@ $(document).ready(function(){
                 contentType:"application/json; charset=utf-8", 
                 success: function(){
                     console.log('Message sent successfully');
-                    $("#msgPanel").append(content + "\n");
+                    $("#msgPanel").append("\n" + sender + ": " + content + "\n");
                     $('#content').val('');
                 },
                 error: function(err){
@@ -147,7 +188,7 @@ $(document).ready(function(){
                 contentType:"application/json; charset=utf-8", 
                 success: function(){
                     console.log('Message sent successfully');
-                    $("#msgPanel").append(content + "\n");
+                    $("#msgPanel").append("\n" + sender + ": " + content + "\n");
                     $('#content').val('');
                 },
                 error: function(err){

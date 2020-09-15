@@ -6,6 +6,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,8 @@ import com.google.gson.GsonBuilder;
 import models.Message;
 import models.User;
 import ws.WSEndPoint;
+import ws.WSLogin;
+import ws.WSLogout;
 
 //local bean znaci da metode koje hocemo da pogodimo restom
 //ne moraju da se navode u remote interfejs
@@ -46,19 +49,20 @@ import ws.WSEndPoint;
 @Path("")
 @LocalBean
 public class ChatBean{
-	@Resource(mappedName = "java:/ConnectionFactory")
-	private ConnectionFactory connectionFactory;
 	
-	@Resource(mappedName = "java:jboss/exported/jms/queue/mojQueue")
-	private Queue queue;
+	private HashMap<String, Session> sessions = new HashMap<>();
 	
 	@EJB
 	private WSEndPoint ws;
+	
+	@EJB
+	private WSLogin wslogin;
+	
+	@EJB
+	private WSLogout wslogout;
 
-	private HashMap<String, Session> sessions = new HashMap<>();
-
-	private List<User> users = new ArrayList<User>();
-	private List<User> loggedIn = new ArrayList<User>();
+	@EJB
+	private DBBean database;
 	
 	
 	//pravi rest metodu
@@ -70,63 +74,19 @@ public class ChatBean{
 	}
 
 	
-	@POST
-	@Path("/chat/post/{text}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String post(@PathParam("text") String text) {
-		System.out.println("Recieved message: "+ text);
-		
-		try {
-			QueueConnection connection = (QueueConnection) connectionFactory.createConnection("guest","guest.guest.1");
-			QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-			QueueSender sender = session.createSender(queue);
-			//create and publish a message
-			
-			TextMessage message = session.createTextMessage();
-			message.setText(text);
-			sender.send(message);
-			
-		} catch(Exception ex) {
-			ex.printStackTrace();
-		}
-	
-		return "OK";
-	}
-	
-	
 	@GET
 	@Path("/users/registered")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> getRegisteredUseres() {
-		
-		List<String> usernames = new ArrayList<String>();
-		
-		for(User u : users) {
-			usernames.add(u.getUsername());
-		}
-		
-		System.out.println(usernames);
-		
-		return usernames;
+	public Collection<String> getRegisteredUseres() {
+		return database.getRegistered().keySet();
 	}
 	
 	
 	@GET
 	@Path("/users/loggedIn")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> getLoggedInUsers() {
-		
-		List<String> usernames = new ArrayList<>();
-		System.out.println("Logged in users: ");
-		
-		for (User u : loggedIn) {
-			usernames.add(u.getUsername());
-			
-		}
-		
-		
-		return usernames;
-		
+	public Collection<String> getLoggedInUsers() {
+		return database.getLoggedIn().keySet();
 	}
 	
 
@@ -137,17 +97,15 @@ public class ChatBean{
 	public Response register(User user) {
 		System.out.println(user.getUsername() + "  " + user.getPassword());
 		
-		for(User u : users) {
+		for(User u : database.getRegistered().values()) {
 			if(user.getUsername().equals(u.getUsername())) {
 				System.out.println("User already registered");
 				return Response.status(400).entity("Registration failed").build();
 			}
 		}
 		
-		this.users.add(user);
-		//System.out.println("User registered");
-		//System.out.println("Number of registered users " + this.users.size());
-		
+		database.getRegistered().put(user.getUsername(), user);
+	
 		
 		return Response.status(200).entity("Registration successful").build();
 	}
@@ -160,11 +118,12 @@ public class ChatBean{
 	public Response login(User user,@Context HttpServletRequest request, Session session) {
 		System.out.println(user.getUsername() + "  " + user.getPassword());
 	
-		for(User u : this.users) {
+		for(User u : database.getRegistered().values()) {
 				if(u.getUsername().equals(user.getUsername()) && u.getPassword().equals(user.getPassword())) {
 					request.getSession().setAttribute("username", user.getUsername());
-					this.loggedIn.add(user);
+					database.getLoggedIn().put(user.getUsername(), user);
 					sessions.put(user.getUsername(),session);
+					wslogin.newLogin(user.getUsername());
 					System.out.println("User logged in");
 					return Response.status(200).entity(user.getUsername()).build();
 				}
@@ -180,12 +139,12 @@ public class ChatBean{
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response logout(@PathParam ("username") String username,@Context HttpServletRequest request) {
 		
-		for(User u : loggedIn) {
+		for(User u : database.getLoggedIn().values()) {
 			if(u.getUsername().equals(username)) {
-				loggedIn.remove(u);
-				sessions.remove(u);
+				database.getLoggedIn().remove(u.getUsername(), u);
+				request.getSession().removeAttribute(username);
 				request.getSession().invalidate();
-				
+				wslogout.newLogout(username);
 				System.out.println("User succssfully logged out");
 				
 				return Response.status(200).entity("User successfully logged out").build();
@@ -203,20 +162,17 @@ public class ChatBean{
 	@Path("/messages/all")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response sendMessageToAllUsers(Message msg,@Context HttpServletRequest request) throws IOException {
- 		ArrayList<Message> mssgs = new ArrayList<Message>();
 		
-		for(User u : users) {
+		for(User u : database.getRegistered().values()) {
 			Message mssg = new Message();
 			String sender = (String)request.getSession().getAttribute("username");
 			mssg.setSender(sender);
 			mssg.setReciever(u.getUsername());
 			mssg.setContent(msg.getContent());
-			mssgs = u.getMessages();
-			mssgs.add(mssg);
-
-		
-			u.setMessages(mssgs);
-			System.out.println("Number of mssgs that the user recieved(after): " + mssgs.size());
+			u.getMessages().put(mssg.getUuid(),mssg);
+			
+			database.getAllMessages().put(mssg.getUuid(), mssg);
+			
 			ws.sendToAll(sender, mssg.getContent());
 		
 		}
@@ -227,25 +183,19 @@ public class ChatBean{
 	@GET
 	@Path("/messages/{user}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public ArrayList<Message> getMessagesForUser(@PathParam("user") String username) throws IOException {
-		
-		ArrayList<Message> mssgs = new ArrayList<Message>();
-		
-	
-
-
-		for(User u : users) {
+	public Collection<Message> getMessagesForUser(@PathParam("user") String username) throws IOException {
+		Collection<Message> mssgs = null;
+		for(User u : database.getRegistered().values()) {
 			if(u.getUsername().equals(username)) {
-				mssgs = u.getMessages();
+				mssgs = u.getMessages().values();
 			}
 		}
 		
-		if(mssgs.size() == 0) {
+		if(mssgs == null) {
 			System.out.println("This user didn't recieve any messages");
 		}
 		
 		
-	
 		return mssgs;
 	}
 	
@@ -256,10 +206,7 @@ public class ChatBean{
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response sendMessageUser(Message msg,@Context HttpServletRequest request) throws IOException {
 	
-		ArrayList<Message> msgs = new ArrayList<Message>();
-		
-		
-		for(User u : users) {
+		for(User u : database.getRegistered().values()) {
 			if(msg.getReciever().equals(u.getUsername())) {
 				System.out.println("Found user with added username");
 				Message mssg = new Message();
@@ -267,27 +214,17 @@ public class ChatBean{
 				mssg.setSender(sender);
 				mssg.setReciever(msg.getReciever());
 				mssg.setContent(msg.getContent());
-				msgs = u.getMessages();
-				msgs.add(mssg);
+				u.getMessages().put(mssg.getUuid(),mssg);
 				
-			
-				u.setMessages(msgs);
+				database.getAllMessages().put(mssg.getUuid(), mssg);
+				
 				ws.sendOneMessage(sender, mssg.getContent());
-
-				
-				
+				System.out.println("Message sent");
+				return Response.status(200).build();
 			}
 		}
-		//ukoliko nije nasao usera nece addovati u listu
-		if(msgs.size() == 0) {
-			System.out.println("Unable to send message, user with that username is not in the system");
-			return Response.status(400).build();
-		}
-		
-		System.out.println("Message sent");
-	
-		return Response.status(200).build();
+		return Response.status(400).entity("User not found").build();
+			
+
 	}
-		
-	
 }
