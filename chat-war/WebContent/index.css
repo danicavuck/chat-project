@@ -8,28 +8,28 @@
 
 h1 {
 	font-size : 30px;
-	font : verdana
+	font : verdana;
+	color:#483D8B;
 	
 }
 
 h2{
   font: normal normal normal 20px/1 Helvetica, arial, sans-serif;
   border-bottom: 2px solid #000;
-  background:#483D8B;
-  color:#fff;
+  color:#483D8B;
 
   display:inline-block;
   padding:3px 15px;
   margin-left:10px;
 }
 #msgPanel{
-    height: 100px;
+    height: 300px;
     width: 100%;
   
 }
 
 #reciever{
-	margin-top: 10%;
+	margin-top: 5%;
 }
 
 #content{
@@ -39,16 +39,17 @@ h2{
 
 #btnSend{
 	margin-top: 5%;
-	width : 425px;
+	width : 100px;
 	background: #483D8B;
+	display:inline-block;
 }
 
 #btnLogout{
-	width : 75px;
-	position: absolute;
-  right: 15px;
-  bottom: 15px;
-  background: #483D8B;
+	margin-top: 5%;
+	width : 100px;
+	background: #483D8B;
+	display:inline-block;
+	margin-left: 5cm;
 	
 }
 #usersTable{
@@ -148,14 +149,4 @@ font-family: "Times New Roman", Times, serif;
 }
 .container .info span .fa {
   color: #EF3B3A;
-}
-body {
-  background: #6495ED; /* fallback for old browsers */
-  background: -webkit-linear-gradient(right,#6495ED, #6495ED);
-  background: -moz-linear-gradient(right, #6495ED2, #6495ED);
-  background: -o-linear-gradient(right, #6495ED, #6495ED);
-  background: linear-gradient(to left, #6495ED, #6495ED);
-  font-family: "Roboto", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;      
 }

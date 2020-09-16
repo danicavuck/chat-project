@@ -38,7 +38,8 @@ $(document).ready(function(){
 	    }
 	
 	    socket.onmessage = function(msg){
-	     $("#msgPanel").append(msg.content + "\n");
+	     console.log(msg.data);
+	     $("#msgPanel").append('<p>' + msg.data + '</p>');
 	    }
 	
 	    socket.onclose = function(){
@@ -112,7 +113,7 @@ $(document).ready(function(){
                var sender = data[i].sender;
                var reciever = data[i].reciever;
                var content = data[i].content;
-               $("#msgPanel").append(sender + " : " + content);
+               $("#msgPanel").append('<p>' + sender + " : " + content + '<\p>');
              
             }
         },
@@ -173,7 +174,7 @@ $(document).ready(function(){
                 contentType:"application/json; charset=utf-8", 
                 success: function(){
                     console.log('Message sent successfully');
-                    $("#msgPanel").append("\n" + sender + ": " + content + "\n");
+                    $("#msgPanel").append('<p>' + sender + ": " + content + '<\p>');
                     $('#content').val('');
                 },
                 error: function(err){
@@ -188,7 +189,7 @@ $(document).ready(function(){
                 contentType:"application/json; charset=utf-8", 
                 success: function(){
                     console.log('Message sent successfully');
-                    $("#msgPanel").append("\n" + sender + ": " + content + "\n");
+                    $("#msgPanel").append('<p>' + sender + ':' + content + '</p>');
                     $('#content').val('');
                 },
                 error: function(err){

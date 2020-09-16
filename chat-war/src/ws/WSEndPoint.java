@@ -47,7 +47,8 @@ public class WSEndPoint {
 		for(String uname : sessions.keySet()) {
 			if(!uname.equals(username)) {
 				try {
-					sessions.get(uname).getBasicRemote().sendText(msg);
+					String temp = username + ":" + msg;
+					sessions.get(uname).getBasicRemote().sendText(temp);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -56,11 +57,12 @@ public class WSEndPoint {
 		}
 	}
 	
-	public void sendOneMessage(String username, String message) {
+	public void sendOneMessage(String username,String sender, String message) {
 		try {
+			String temp = sender + ":" + message;
 	        for (String s : sessions.keySet()) {
 	        	if(s.equals(username)) {
-	        		sessions.get(s).getBasicRemote().sendText(message);
+	        		sessions.get(s).getBasicRemote().sendText(temp);
 	        		break;
 	        	}        	
 			}

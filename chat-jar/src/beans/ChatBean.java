@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -169,6 +170,7 @@ public class ChatBean{
 			mssg.setSender(sender);
 			mssg.setReciever(u.getUsername());
 			mssg.setContent(msg.getContent());
+			mssg.setTime(LocalDateTime.now());
 			u.getMessages().put(mssg.getUuid(),mssg);
 			
 			database.getAllMessages().put(mssg.getUuid(), mssg);
@@ -214,11 +216,12 @@ public class ChatBean{
 				mssg.setSender(sender);
 				mssg.setReciever(msg.getReciever());
 				mssg.setContent(msg.getContent());
+				mssg.setTime(LocalDateTime.now());
 				u.getMessages().put(mssg.getUuid(),mssg);
 				
 				database.getAllMessages().put(mssg.getUuid(), mssg);
 				
-				ws.sendOneMessage(sender, mssg.getContent());
+				ws.sendOneMessage(mssg.getReciever(),mssg.getSender(), mssg.getContent());
 				System.out.println("Message sent");
 				return Response.status(200).build();
 			}
